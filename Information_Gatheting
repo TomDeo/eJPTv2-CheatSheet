@@ -1,1 +1,112 @@
+RECON o INFORMATION GATHERING
+
+"Considero esta fase, junto a la fase de enumeracion, las dos mas determinantes para llevar adelante una exitosa prueba de penetracion, conocer al objetivo y tener los recursos
+para convertir los datos en Informacion util es a nivel esrategico la primera gran pracica."
+
+El Reconocimiento puede hacerse de forma Activa o Pasiva, en funcion de el grado de interaccion que debams tener con el objetivo para conseguir los datos.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+RECOLECCION PASIVA
+
+Los siguientes comandos o practicas consultan informacion sobre una pagina web u objetivo objetivo creando poco o nulo "ruido".
+
+RECON SOBRE PAGINAS WEB
+
+  host dominio.com  (dnslookup)
+
+  dominio.com/robots.txt
+  dominio.com/sitemap.xml
+
+  whatweb dominio.com  
+  whatweb $IP
+
+  httrack (Herramienta para hacer copias de paginas web)
+
+  whois dominio.com 
+  whois $IP
+
+  netcraft.com (Servicio para obtener inforacion de un domino objetivo, compila varias tecnicas pasivas)
+
+  dnsdumpster.com (chequea los registros NS relacionados a cierto dominio y reconstruye un mapa de subdominios)
+
+DESCUBRIMIENTO DE FIREWALL WEB
+
+  wafw00f (Herramienta de deteccion de "web application firewall")
+  wafw00ff  -l  
+  wafw00f dominio.com 
+  wafw00f ip 
+  wafw00f -a dominio.com
+
+ENUMERACION PASIVA DE SUBDIRECTORIOS POR MEDIO DE BROWSERS
+
+sublist3r (enumeracion de subdominios de foram pasiva)
+sublist3r -d dominio -p puerto -e (browsers a usar) -t (hilos) -v (verbose) -b (activa brute force)
+
+Gogle Dorking
+site:dominio.com  
+inurl:admin   
+inurl:login   
+inurl:name 
+inurl:auth_user_file.txt  
+inurl:passwd.txt 
+site:*.dominio.com (listar subdominios)  
+intitle:admin  
+intitle:x 
+intitle:index of  
+filetype:pdf 
+filetype:xml
+filetipe:png 
+filetipe:txt  
+cache:dominio.com 
+intext:password 
+intext:mail
+--->tambien pueden consultarse mas dorks en https://www.exploit-db.com/google-hacking-database
+
+
+ROCONOCIMIENTO PASIVO DE EMAIL
+
+  theharvester -d dominio -b (buscadores o paginas para indexar)
+
+  theharvester -d nombre  -b google,yandex,linkedin,badoo,duckduckgo,dnsdumpster,shodan,spyse
+
+
+LEAKS DE INFO
+  -haveibeenpwned.com
+  -breachdirectory.org  +  hashes.com
+  -keepersecurity.com
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+RECOLECCION ACTIVA
+
+Este acercamiento suele dar resultados mas directos pero tambien corre el riesgo de disparar mas alarmas.
+
+DNS ZONE TRANSFER
+zone transfer es el proceso en el que un admin de seridor dns copia o transfiere los archivos de zona de un servidor a otro.
+si esta facilidad esta mal conf. un atacante pude copiar el "zone file" de un dns y obtener una vision aplia de la estructura de red
+de la organizacion objetivo.
+ 
+ dnsenum dominio.com
+ 
+ dig axfr @nameserver dominio
+
+
+NMAP   (El escaner de redes por excelencia.)
+
+nmap -sn red/subred  //   netdiscover -i eth0 red  //   arp-scan -I eth0 -g red/subred   // fping -I eth0 -g red/subred -a 2>/dev/null   (ping de subred)
+
+nmap -sS -p- -Pn -n -T4 --open  IP    (escaneo de puertos rapido)
+
+nmap -sU --top-ports 50 -Pn -n -T4 IP    (escaneo UDP rapido)
+
+nmap -sV -p x,x,x  -Pn -n -T4 IP     (escaneo de servicios)
+
+nmap -sVC -p x,x,x  -Pn -n -T4 IP    (varios scripts de reconocimiento basicos)
+
+nmap -sV -O -p x,x,x  -Pn -n -T4 IP   (host SO discovery)
+
+(Elegi poner el dns null y el ping null para ganar en agilidad, en caunto a la flag de velocidad "T4" prefiero usar esa porque me han comentado que "T5" puede crashear algunos
+lab.)
+
+
+
 
