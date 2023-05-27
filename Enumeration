@@ -1,1 +1,205 @@
+RECON SOBRE EL SERVICIO SMB (445)
 
+NMAP
+
+Haciendo uso de null session
+  nmap -p445 --script smb-protocols IP            (enumera los protocolos de la version)
+  nmap -p445 --script smb-security-mode  IP       (enumera la seguridad del protocolo)
+  nmap -p445 --script smb-enum-sessions IP        (enumera las sesiones en el sistema)
+  nmap -p445 --script smb-enum-shares IP          (Enumera directorios compartidos en la red)
+  nmap -p445 --script smb-enum-users IP           (Enumera ususarios en el sistema)
+  nmap -p445 --script smb-enum-status  IP         (Enumera el estado del servicio SMB)
+  nmap -p445 --script smb-enum-domains IP         (Enumera dominios internos)
+  nmap -p445 --script smb-enum-groups IP          (Enumera grupos en el sistema)
+  nmap -p445 --script smb-enum-shares,smb-ls IP   (enumera shares pero hace ls en estos)
+  nmap -p445 --script smb-os-discovery IP         (Trata de obtener el SO en el que corre el smb)
+
+Argumentos para el inicio de sesion
+ -->en caso de tener credenciales de inicio:
+  --script-args smbusername=USER,smbpassword=PASSWORD
+
+
+SMBMAP
+
+null session
+smbmap -u guest -p "" -d . -H IP
+
+sesion de usuario
+smbmap -u usuario -p contraseña -H IP
+
+ejecucion de comandos
+smbmap -u usuario -p contraseña -H IP -x 'comando'
+
+leer cierto directorio
+smbmap -u usuario -p contraseña -H IP -r 'dir$'
+
+subir un archivo
+smbmap -u usuario -p contraseña -H IP  --upload '/root/file'  'dir$'
+
+descargar un archivo
+smbmap -u usuario -p contraseña -H IP  --download 'dir$/flag.txt'
+
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+RECON SOBRE SAMBA (445)
+
+samba puede existir en los puertos tcp 139,445 y en udp en los puertos 137,138
+
+NMAP
+  (Mismos scripts de discovery que para smb)
+
+MMBLOOKUP
+
+  #mmblookup -A $IP
+
+SMBCLIENT
+
+  null session
+  #smbclient -L $IP -N
+
+Conexion directa
+  smbclient //IP/carpeta -N      (null sesion)
+  smbclient //IP/carpeta -U user
+
+
+nullsession
+  rpcclient -U " " -N IP
+
+SMBMAP
+  smbmap -u guest -p " " -d . -H IP (NullSESION)
+  smbmap -u usuario -p pass -H IP -x 'COMANDO'  (Ejecucion de comandos)
+  smbmap - u user -p pass -H IP -r 'dir$'  (Leer un directorio compartido)
+
+    --upload '/root/file' 'destino$'  (Subir archivo)
+    --download 'c$/flag.txt'          (Descargar archivo)
+
+
+ENUM4LINUX
+
+  null session
+  #enum4linux -o IP  (SO)
+  #enum4linux -U IP (usuarios)
+  #enum4linux -S IP (Shares)
+  #enum4linux -G IP (grupos)
+
+MSF
+
+  us auxiliary/scanners/smb/ [...]
+
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+ATAQUE DE DICCIONARIO SMB y SAMBA (445)
+
+METASPLOIT
+
+use auxiliary/scanner/smb/smb_login
+  set PASS_FILE
+  set USER_FILE
+  set smbuser
+
+HYDRA
+  hydra -l user -P /list/of/passwords IP smb
+  hydra -L /list/of/users -p password  IP  smb
+  
+--------------------------------------------------------------------------------------------------------------------------------------------------
+RECON SOBRE EL SERVICIO FTP (21)
+
+login con ftp
+  ftp 10.0.0.0
+
+Fuerza bruta sobre ftp (Hydra y nmap)
+  nmap -p21 --script ftp-brute  --script-args userdb=/user/list  passdb=/pass/list  IP
+  hydra -L /lista -P /lista iP  ftp
+
+login anonymous
+  nmap -p21 --script ftp-anon IP
+
+Cmandos de FTP
+  ls             (Listar)
+  get            (Descargar)
+  put            (subir)
+  mget           
+  cd             
+  quit           
+  bye            
+
+
+METASPLOIT
+ 
+  auciliary/scanner/ftp/[-]
+  
+-----------------------------------------------------------------------------------------------------------------------------
+RECON SOBRE SERVICIO SSH (22)
+
+Login con SSH
+  ssh ususario@IP
+  (ususalmente tendremos 3 chances para poner la pass)
+
+Enumerar los algoritmos que se usan para crear keys
+  nmap -p22 --script ssh2-enum-algos IP
+
+
+Construir la RSA hostkey completa
+  nmap -p22 --script ssh-hostkey --script-args ssh_hostkey=full
+
+Probar metodo de autenticacin con cierto usuario
+  nmap -p22 --script ssh-auth-methods --script-args="ssh.user=USUARIO"
+
+
+----------------------------------------------------------------------------------------------------------------------------
+SSH DICTIONARY ATTACK
+
+Hydra y nmap
+  hydra -L /lista -P /lista IP ssh
+  nmap -p22 --script ssh-brute --script-args userdb=/list/of/users
+
+
+METASPLOIT
+  use auxiliary/scanner/ssh/ssh_login  (Hacer log in en ssh)
+  
+  
+------------------------------------------------------------------------------------------------------------------------------
+RECON SOBRE EL PROTOCOLO HTTP (80/443)
+
+RECONOCIMIENTO MANUAL EN NAVEGADOR
+->Poner a prueba el funcionamiento habitual de la app web.
+  1. Buscar con el navegador (Corroborar que la tabla de /etc/hosts tenga cargado el dominio asociado con la IP)
+  2. Buscar algunos subdirectorios utiles comunes
+    ->robots.txt
+    ->xlmmap
+    ->wp-admin
+    ->php-login
+  3. Reconocer tecnologias de la arquitectura del sitio
+    -> wappalizer
+    -> whatweb
+..................................................................................................................................................................
+NMAP
+
+  nmap -sV -p80 IP
+
+NMAP  - IIS  &  APACHE
+
+  nmap -sV -p80 IP --script http-enum  (enumera subdirectorios utiles)
+  --script http-headers                         (Devuelve los headers)
+  --script banner                                 (Imprime el banner)
+  --script http-methods  --script-args http-methods.url-path=/subdirectorio/  (Muestra que verbos http acepta la pagina)
+  --script http-webdav-scan --script-args http-methods.url-path=/webdav/     (scan sobre webdav)
+
+HTTP REQUESTS
+
+  http IP  (request que devuelve el html)
+
+  curl IP | more
+
+  lynx URL
+
+  wget "http://IP/index"
+  -> cat index
+
+DIRB  &  GOBUSTER
+Son ambas herramientas para enumerar subdirectorios web.
+
+MSF
+
+use auxiliary/scanner/http/[...]
