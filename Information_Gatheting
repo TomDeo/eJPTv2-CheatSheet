@@ -75,10 +75,16 @@ LEAKS DE INFO
   -breachdirectory.org  +  hashes.com
   -keepersecurity.com
 
+
+
 ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 RECOLECCION ACTIVA
 
 Este acercamiento suele dar resultados mas directos pero tambien corre el riesgo de disparar mas alarmas.
+
+NETCAT RECON
+nc -v dominio.com 80
+
 
 DNS ZONE TRANSFER
 zone transfer es el proceso en el que un admin de seridor dns copia o transfiere los archivos de zona de un servidor a otro.
